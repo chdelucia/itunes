@@ -1,0 +1,46 @@
+<!-- TODO create alert component @input message  @input type (success-danger) -->
+<div *ngIf='alertMessage' class="alert alert-danger alert-dismissible fade show" role="alert">
+  {{alertMessage}}
+  <button type="button" class="close" data-dismiss="alert" aria-label="Close" (click)='onCloseAlert()'>
+    <span aria-hidden="true">&times;</span>
+  </button>
+</div>
+
+<section *ngIf="pagedExpenses; else nodata" class="albums row">
+  <div class="col-sm-6 col-md-2 card-grid animated fadeIn" *ngFor="let expense of pagedExpenses">
+    <div class="card">
+      <img src="{{expense.artworkUrl100}}" class="card-img-top" />
+      <div class="card-body">
+        <h5 class="card-title">{{expense.collectionName}}</h5>
+        <div>{{expense.artistName }} </div>
+        <p class="card-text">
+          <small class="text-muted">Tracks: {{expense.trackCount}} </small>
+        </p>
+        <a [routerLink]="['/expenses', expense.collectionId]" class="btn btn-primary">See Album</a>
+      </div>
+    </div>
+  </div>
+
+</section>
+
+<!-- Pagination  TODO create a pagination component @input totalItems @output startIndex, endIndex -->
+<section>
+  <ul *ngIf="pager.pages && pager.pages.length" class="pagination justify-content-center">
+
+    <li class="page-item" [ngClass]="{disabled:pager.currentPage === 1}">
+      <a class="page-link" (click)="setPage(pager.currentPage - 1)">Previous</a>
+    </li>
+    <li class="page-item" *ngFor="let page of pager.pages" [ngClass]="{active:pager.currentPage === page}">
+      <a class="page-link" (click)="setPage(page)">{{page}}</a>
+    </li>
+    <li class="page-item" [ngClass]="{disabled:pager.currentPage === pager.totalPages}">
+      <a class="page-link" (click)="setPage(pager.currentPage + 1)">Next</a>
+    </li>
+  </ul>
+</section>
+
+
+<!-- TODO move it to a service and hide it throw eventEmmiter on finally -->
+<ng-template #nodata>
+  <div *ngIf="!alertMessage">Loading...</div>
+</ng-template>
