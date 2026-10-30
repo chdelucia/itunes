@@ -1,6 +1,5 @@
-import { Component, OnInit, inject, signal, computed } from '@angular/core';
+import { Component, inject, signal, computed, input, effect } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
-import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 
 import { ExpenseService } from '../shared/services/expense.service';
@@ -13,21 +12,25 @@ import { Song } from '../shared/models/user';
   templateUrl: './person-detail.component.html',
   styleUrls: ['./person-detail.component.less']
 })
-export class PersonDetailComponent implements OnInit {
+export class PersonDetailComponent {
   private itunesService = inject(ExpenseService);
-  private route = inject(ActivatedRoute);
+
+  // Signal input from route param 'id'
+  id = input<string>();
 
   posts = signal<Song[]>([]);
 
   headerSong = computed<Song | undefined>(() => this.posts()[0]);
   trackList = computed<Song[]>(() => this.posts().slice(1));
 
-  ngOnInit(): void {
-    window.scrollTo(0, 0);
-    const albumId = this.route.snapshot.paramMap.get('id');
-    if (albumId) {
-      this.getAlbumById(albumId);
-    }
+  constructor() {
+    effect(() => {
+      const albumId = this.id();
+      if (albumId) {
+        window.scrollTo(0, 0);
+        this.getAlbumById(albumId);
+      }
+    });
   }
 
   millisToMinutesAndSeconds(millis: number): string {
