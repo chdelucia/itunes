@@ -1,99 +1,72 @@
-
-import {takeUntil} from 'rxjs/operators';
-import { PagerService } from './../../shared/services/pager.service';
-// Angular
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
+import { RouterLink } from '@angular/router';
+import { CommonModule } from '@angular/common';
 
-// Rxjs
-import { Subject } from 'rxjs';
-
-
-
-// Models and Services
+import { PagerService, PagerInfo } from '../../shared/services/pager.service';
 import { ExpenseService } from '../shared/services/expense.service';
 import { Artist, ArtistResponse } from '../shared/models/user';
 
-
 @Component({
   selector: 'app-list-expenses',
-  templateUrl: 'list-expenses.component.html',
-  styleUrls: ['list-expenses.component.less'],
+  standalone: true,
+  imports: [CommonModule, RouterLink],
+  templateUrl: './list-expenses.component.html',
+  styleUrls: ['./list-expenses.component.less'],
 })
+export class ListExpensesComponent implements OnInit {
+  private expenseService = inject(ExpenseService);
+  private pagerService = inject(PagerService);
 
-export class ListExpensesComponent implements OnInit, OnDestroy {
-  expenses: Artist[];
-  pagedExpenses: Artist[];
-  openCreateModal: boolean;
-  alertMessage: string;
+  expenses = signal<Artist[]>([]);
+  alertMessage = signal<string | null>(null);
+  currentPage = signal<number>(1);
 
-  pager: any = {};
-  totalItems = 0;
+  totalItems = computed(() => this.expenses().length);
 
-  private unsubscribe: Subject<void> = new Subject();
+  pager = computed<PagerInfo>(() => {
+    return this.pagerService.getPager(this.totalItems(), this.currentPage());
+  });
 
+  pagedExpenses = computed<Artist[]>(() => {
+    const p = this.pager();
+    if (!p || p.startIndex === undefined || p.endIndex === undefined) {
+      return [];
+    }
+    return this.expenses().slice(p.startIndex, p.endIndex + 1);
+  });
 
-  /**
-   *
-   * @param {ExpenseService} expenseService
-   */
-  constructor(
-    private expenseService: ExpenseService,
-    private pagerService: PagerService,
-  ) { }
-
-
-  ngOnInit() {
+  ngOnInit(): void {
     this.getExpenses('909253');
   }
 
-
-  /**
-   * get the list of expenses
-   */
   getExpenses(artistId: string): void {
-    this.expenseService.getExpenses(artistId).pipe(
-      takeUntil(this.unsubscribe))
-      .subscribe(
-        (data: ArtistResponse) => {
-          this.expenses = data.results.filter ( result => {
-            return result.wrapperType === 'collection';
-          });
-        },
-        (err: HttpErrorResponse) => {
-          if (err.error instanceof Error) {
-            // A client-side or network error occurred. Handle it accordingly.
-            this.alertMessage = 'An error occurred:' + err.error.message;
-          } else {
-            // The backend returned an unsuccessful response code.
-            this.alertMessage = `Backend returned code ${err.status}, body was: ${err.message}`;
-          }
-        },
-        () => {
-        this.totalItems = this.expenses.length;
-        this.setPage(1);
-      });
+    this.expenseService.getExpenses(artistId).subscribe({
+      next: (data: ArtistResponse) => {
+        const collections = data.results.filter(result => result.wrapperType === 'collection');
+        this.expenses.set(collections);
+        this.currentPage.set(1);
+      },
+      error: (err: HttpErrorResponse) => {
+        if (err.error instanceof Error) {
+          this.alertMessage.set('An error occurred:' + err.error.message);
+        } else {
+          this.alertMessage.set(`Backend returned code ${err.status}, body was: ${err.message}`);
+        }
+      }
+    });
   }
 
-
-  setPage(page: number) {
+  setPage(page: number): void {
     window.scrollTo(0, 0);
-    if (page < 1 || page > this.pager.totalItems) {
+    const p = this.pager();
+    if (page < 1 || (p.totalPages && page > p.totalPages)) {
       return;
     }
-    // get pager object from service
-    this.pager = this.pagerService.getPager(this.totalItems, page);
-
-    // get current page of items
-    this.pagedExpenses = this.expenses.slice(this.pager.startIndex, this.pager.endIndex + 1);
+    this.currentPage.set(page);
   }
 
-  /**
-   * Cancel subscriptions
-  */
-  ngOnDestroy() {
-    this.unsubscribe.next();
-    this.unsubscribe.complete();
+  onCloseAlert(): void {
+    this.alertMessage.set(null);
   }
-
 }

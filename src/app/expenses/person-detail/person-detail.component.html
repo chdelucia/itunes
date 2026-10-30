@@ -1,34 +1,33 @@
-
-<!-- header Card -->
-<section *ngIf="posts" class="card testimonial-card animated fadeIn">
-        <div class="card-up indigo">
-        </div>
-        <div class="avatar mx-auto white">
-            <img src="{{posts[0].artworkUrl100}}" class="rounded-circle">
-        </div>
-    
-        <div class="card-body">
-            <h4 class="card-title">{{posts[0].collectionName}}</h4>
-            <hr>
-            <p> {{posts[0].artistName}}</p>
-        </div>
-</section>
-
-
-<section class="album-details">
-    <div class="player animated slideInRight" *ngFor="let post of posts |  slice:1:100">
-        <div class="left">{{post.trackNumber}}</div>
-        <div class="right">
-            <div class="top">
-                <a class="song">{{post.trackName}}</a>
-                <a class="artist">{{millisToMinutesAndSeconds(post.trackTimeMillis)}}</a>
-            </div>
-            <div class="bottom">
-                <video controls="" _autoplay="" name="media">
-                    <source src="{{post.previewUrl}}">
-                </video>
-            </div>
-        </div>
+@if (headerSong(); as song) {
+  <section class="card testimonial-card animated fadeIn">
+    <div class="card-up indigo"></div>
+    <div class="avatar mx-auto white">
+      <img [src]="song.artworkUrl100" class="rounded-circle" [alt]="song.collectionName">
     </div>
 
+    <div class="card-body">
+      <h4 class="card-title">{{ song.collectionName }}</h4>
+      <hr>
+      <p>{{ song.artistName }}</p>
+    </div>
+  </section>
+}
+
+<section class="album-details">
+  @for (post of trackList(); track post.trackId || post.trackName) {
+    <div class="player animated slideInRight">
+      <div class="left">{{ post.trackNumber }}</div>
+      <div class="right">
+        <div class="top">
+          <a class="song">{{ post.trackName }}</a>
+          <a class="artist">{{ millisToMinutesAndSeconds(post.trackTimeMillis) }}</a>
+        </div>
+        <div class="bottom">
+          <video controls name="media">
+            <source [src]="post.previewUrl">
+          </video>
+        </div>
+      </div>
+    </div>
+  }
 </section>
