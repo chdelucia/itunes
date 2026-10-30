@@ -1,29 +1,32 @@
-import { LogService } from './../logs.service';
-import { Injectable } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
+import { LogService } from '../logs.service';
 
-@Injectable()
+@Injectable({
+  providedIn: 'root'
+})
 export class AuthService {
-  private isLogged = false;
-  private userName;
-  constructor( private logger: LogService) {}
+  private logger = inject(LogService);
 
-  login(form: any) {
-    this.userName = form.name;
-    this.isLogged = true;
-    this.logger.info('PersonService', 'getUsers', 'Logged as:' + this.userName);
-    return this.isLogged;
+  private isLoggedSignal = signal<boolean>(false);
+  private userNameSignal = signal<string | undefined>(undefined);
+
+  login(form: any): boolean {
+    this.userNameSignal.set(form?.name);
+    this.isLoggedSignal.set(true);
+    this.logger.info('AuthService', 'login', 'Logged as:' + this.userNameSignal());
+    return this.isLoggedSignal();
   }
 
-  logout() {
-    this.isLogged = false;
-  }
-  getUserName() {
-    return this.userName;
-  }
-  getStatus() {
-    this.logger.info('PersonService', 'getStatus', 'is logged?:' + this.isLogged);
-    return this.isLogged;
+  logout(): void {
+    this.isLoggedSignal.set(false);
   }
 
+  getUserName(): string | undefined {
+    return this.userNameSignal();
+  }
 
+  getStatus(): boolean {
+    this.logger.info('AuthService', 'getStatus', 'is logged?:' + this.isLoggedSignal());
+    return this.isLoggedSignal();
+  }
 }

@@ -1,8 +1,10 @@
-<div class="web-breadcrumb animated fadeIn"> 
+<div class="web-breadcrumb animated fadeIn">
   <ol class="breadcrumb">
     <li><a routerLink="" class="link-breadcrumb">HOME</a></li>
-      <li *ngFor="let breadcrumb of breadcrumbInit">
+    @for (breadcrumb of breadcrumbInit(); track breadcrumb.url) {
+      <li>
         <a [routerLink]="[breadcrumb.url]" class="link-breadcrumb">{{ breadcrumb.translateLabel }}</a>
-      </li>  
+      </li>
+    }
   </ol>
 </div>

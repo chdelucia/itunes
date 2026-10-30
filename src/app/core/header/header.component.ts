@@ -1,24 +1,21 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, signal } from '@angular/core';
+import { RouterLink, RouterLinkActive } from '@angular/router';
 
-class MenuItem {
-  constructor(caption: string, link: any) { }
+export interface MenuItem {
+  caption: string;
+  link: string[];
 }
 
 @Component({
   selector: 'app-header',
+  standalone: true,
+  imports: [RouterLink, RouterLinkActive],
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.less']
 })
-export class HeaderComponent implements OnInit {
-  menuItems: MenuItem[];
-  visible = false;
-  constructor() { }
-
-  ngOnInit() {
-    this.menuItems = [
-      { caption: 'Itunes', link: ['/expenses']}
-    ];
-  }
-
-
+export class HeaderComponent {
+  menuItems = signal<MenuItem[]>([
+    { caption: 'Itunes', link: ['/expenses'] }
+  ]);
+  visible = signal<boolean>(false);
 }
