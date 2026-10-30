@@ -7,8 +7,11 @@ import { LogService } from '../logs.service';
 export class AuthService {
   private logger = inject(LogService);
 
-  private isLoggedSignal = signal<boolean>(false);
-  private userNameSignal = signal<string | undefined>(undefined);
+  readonly isLoggedSignal = signal<boolean>(false);
+  readonly userNameSignal = signal<string | undefined>(undefined);
+
+  readonly isLogged = this.isLoggedSignal.asReadonly();
+  readonly userName = this.userNameSignal.asReadonly();
 
   login(form: any): boolean {
     this.userNameSignal.set(form?.name);
